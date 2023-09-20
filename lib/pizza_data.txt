@@ -1,0 +1,24 @@
+import 'pizza_page.dart';
+
+// Create a list of Pizza objects
+List<Pizza> pizzaList = [
+  Pizza(
+    name: 'Margherita',
+    imageUrl:
+        'https://w7.pngwing.com/pngs/100/921/png-transparent-pizza-hut-italian-cuisine-take-out-restaurant-pizza-pizza-pie-food-pizza-logo-pizza-delivery-thumbnail.png',
+    price: 10.99,
+  ),
+  Pizza(
+    name: 'Pepperoni',
+    imageUrl:
+        'https://w7.pngwing.com/pngs/56/985/png-transparent-pizza-margherita-sushi-pizza-pizza-delivery-pizza-thumbnail.png',
+    price: 12.99,
+  ),
+  Pizza(
+    name: 'Chicken Tikka',
+    imageUrl:
+        'https://w7.pngwing.com/pngs/375/121/png-transparent-pizza-with-tomatos-new-york-style-pizza-italian-cuisine-take-out-pizza-margherita-pizza-food-recipe-pizza-logo-thumbnail.png',
+    price: 18.99,
+  ),
+  // Add more pizza items here
+];
