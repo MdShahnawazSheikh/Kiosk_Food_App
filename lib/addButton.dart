@@ -64,7 +64,7 @@ class _AddRemoveButtonState extends State<AddRemoveButton> {
                   style: ElevatedButton.styleFrom(
                     primary: Colors.green,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
+                      borderRadius: BorderRadius.circular(10.01),
                     ),
                   ),
                   child: Padding(
