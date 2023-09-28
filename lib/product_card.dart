@@ -70,7 +70,7 @@ class ProductCard extends StatelessWidget {
                     height: 5,
                   ),
                   Text(
-                    ("Size: $productSize"),
+                    ("Size: ${this.productSize}"),
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.left,
                     style: TextStyle(
@@ -93,7 +93,11 @@ class ProductCard extends StatelessWidget {
                   SizedBox(
                     height: screenHeight / 65,
                   ),
-                  AddRemoveButton(),
+                  AddRemoveButton(
+                      imagePath: this.imagePath,
+                      price: this.price,
+                      productSize: this.productSize,
+                      productName: this.productName),
                 ],
               ),
             ],

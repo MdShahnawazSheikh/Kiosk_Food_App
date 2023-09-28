@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:kiosk_food/SnackBarCustom.dart';
+import 'cartManager.dart';
 
 class AddRemoveButton extends StatefulWidget {
+  final String imagePath;
+  final String productName;
+  final double price;
+  final String productSize;
+  AddRemoveButton(
+      {required this.imagePath,
+      required this.productName,
+      required this.price,
+      required this.productSize,
+      super.key}) {}
   @override
   _AddRemoveButtonState createState() => _AddRemoveButtonState();
 }
@@ -60,7 +72,18 @@ class _AddRemoveButtonState extends State<AddRemoveButton> {
                   ],
                 )
               : ElevatedButton(
-                  onPressed: _toggleButton,
+                  onPressed: () {
+                    final productToAdd = AddedProduct(widget.productName,
+                        widget.price, 1, widget.imagePath, widget.productSize);
+                    // Add the product to the cart using CartManager
+                    CartManager().addProduct(productToAdd);
+                    String productName = widget.productName;
+                    String imagePath = widget.imagePath;
+                    showCustomSnackBar(
+                        context,
+                        "$productName successfully added to your cart!",
+                        imagePath);
+                  },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.green,
                     shape: RoundedRectangleBorder(

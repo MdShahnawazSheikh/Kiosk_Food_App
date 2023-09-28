@@ -1,10 +1,18 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:kiosk_food/burger_page.dart';
 import 'package:kiosk_food/carousel.dart';
+import 'package:kiosk_food/checkout.dart';
 import 'package:kiosk_food/drink_page.dart';
 import 'package:kiosk_food/pizza_page.dart';
 import 'package:kiosk_food/trending_page.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
+import 'paymentSuccessPage.dart';
+import 'cartManager.dart'; // Import the CartManager class
+// import 'package:pay/pay.dart';
 
 const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
 void main() => runApp(
@@ -14,17 +22,21 @@ void main() => runApp(
       ),
     );
 
+/* void main(List<String> args) {
+  runApp(MyApp());
+}
+ */
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Kiosk Food Ordering',
+      title: 'Flavio Beta',
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: const HomeScreen(),
+      home: PaymentSuccessPage(orderId: "Example ID"),
     );
   }
 }
@@ -45,13 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const BurgerPage(), // Burger
     const DrinkPage(), // Cold Drink
     const TrendingPage(), // Recommend
-  ];
-
-  // List to store added products
-  List<AddedProduct> addedProducts = [
-    AddedProduct("TestProduct 1", 334, 3, 'assets/pizza_img/pizza1.png'),
-    AddedProduct("TestProduct 2", 564, 3, 'assets/pizza_img/pizza2.png'),
-    AddedProduct("TestProduct 3", 644, 3, 'assets/pizza_img/pizza3.png'),
   ];
 
   @override
@@ -90,34 +95,24 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ), // Display the selected page
-        bottomNavigationBar: BottomNavigationBar(
+        bottomNavigationBar: FloatingNavbar(
+          borderRadius: 8,
+          backgroundColor: Colors.deepPurple,
+          selectedItemColor: Colors.deepPurple,
           currentIndex: _selectedIndex, // Current selected index
           onTap: _onItemTapped, // Function to handle item tap
           items: [
             // Define the navigation bar items with icons
-            BottomNavigationBarItem(
-              icon: Image.asset('assets/nav_icons/pizza1.png',
-                  width: 30, height: 30),
-              label: 'Pizza',
-            ),
-            BottomNavigationBarItem(
-              icon: Image.asset('assets/nav_icons/burger.png',
-                  width: 30, height: 30),
-              label: 'Burger',
-            ),
-            BottomNavigationBarItem(
-              icon: Image.asset('assets/nav_icons/cold_drink.png',
-                  width: 30, height: 30),
-              label: 'Cold Drink',
-            ),
-            BottomNavigationBarItem(
-              icon: Image.asset('assets/nav_icons/trending.png',
-                  width: 30, height: 30),
-              label: 'Recommend',
-            ),
+            FloatingNavbarItem(icon: Icons.local_pizza, title: 'Pizza'),
+            FloatingNavbarItem(icon: FontAwesomeIcons.burger, title: 'Burger'),
+            FloatingNavbarItem(
+                icon: FontAwesomeIcons.bottleWater, title: 'Drinks'),
+            FloatingNavbarItem(
+                icon: FontAwesomeIcons.arrowUpWideShort, title: 'Trending'),
           ],
         ),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.deepPurple,
           onPressed: () {
             _showCartDialog(context);
           },
@@ -136,39 +131,105 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Function to show the cart dialog
   void _showCartDialog(BuildContext context) {
+    double totalPrice = CartManager().calculateTotalPrice();
+    final screenWidth = MediaQuery.of(context).size.width;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          actionsPadding: EdgeInsets.all(30),
+          titlePadding: EdgeInsets.all(30),
           title: const Text('Your Cart'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              itemCount: addedProducts.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading:
-                      Image(image: AssetImage(addedProducts[index].imagePath)),
-                  title: Text(addedProducts[index].productName),
-                  subtitle: Text(
-                    'Price: \$${addedProducts[index].price.toStringAsFixed(2)}\nQuantity: ${addedProducts[index].quantity}',
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.remove_shopping_cart),
-                    onPressed: () {
-                      _removeProduct(index);
-                    },
-                  ),
-                );
-              },
-            ),
+          content: StatefulBuilder(
+            // Wrap the content in StatefulBuilder
+            builder: (BuildContext context, StateSetter setState) {
+              return SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  itemCount: CartManager().addedProducts.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: Image(
+                        image: AssetImage(
+                            CartManager().addedProducts[index].imagePath),
+                        width: screenWidth / 10,
+                      ),
+                      title:
+                          Text(CartManager().addedProducts[index].productName),
+                      subtitle: Text(
+                        'Size: ${CartManager().addedProducts[index].size}\nQuantity: ${CartManager().addedProducts[index].quantity}\n\nPrice: ₹${CartManager().addedProducts[index].price.toStringAsFixed(2)}',
+                      ),
+                      trailing: Container(
+                        width: screenWidth / 10,
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                CupertinoIcons.cart_badge_minus,
+                                color: Color.fromARGB(255, 51, 106, 245),
+                              ),
+                              onPressed: () {
+                                totalPrice =
+                                    CartManager().calculateTotalPrice();
+                                _deductItem(index, setState);
+                                setState(() {});
+                                // Pass setState to trigger a rebuild
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                CupertinoIcons.delete,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                totalPrice =
+                                    CartManager().calculateTotalPrice();
+                                // Pass setState to trigger a rebuild
+                                _removeProduct(index, setState);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
           actions: <Widget>[
+            Text(
+              "Grand Total: ₹ ${totalPrice.toStringAsFixed(2)}",
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
             ElevatedButton(
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (totalPrice > 0) {
+                  Navigator.pop(context);
+                  double finalPrice = double.parse(
+                      CartManager().calculateTotalPrice().toStringAsFixed(2));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CheckOutPage(paymentAmount: finalPrice),
+                      ));
+                } else {
+                  Fluttertoast.showToast(
+                    msg: "Please add items to cart to proceed!",
+                    timeInSecForIosWeb: 4,
+                  );
+                }
+              },
+              child: const Text('Checkout'),
             ),
           ],
         );
@@ -176,26 +237,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Function to add a product to the cart
-  void _addProduct(AddedProduct product) {
-    setState(() {
-      addedProducts.add(product);
-    });
+// Function to remove a product from the cart
+  void _deductItem(int index, StateSetter setState) {
+    CartManager().deductQuantity(index); // Deduct quantity if possible
+    setState(() {}); // Trigger a rebuild of the StatefulBuilder content
   }
 
   // Function to remove a product from the cart
-  void _removeProduct(int index) {
-    setState(() {
-      addedProducts.removeAt(index);
-    });
+  void _removeProduct(int index, StateSetter setState) {
+    CartManager().removeProduct(index);
+    setState(() {}); // Trigger a rebuild of the StatefulBuilder content
   }
 }
 
-class AddedProduct {
-  final String imagePath;
-  final String productName;
-  final double price;
-  int quantity;
-
-  AddedProduct(this.productName, this.price, this.quantity, this.imagePath);
-}
+// ...
