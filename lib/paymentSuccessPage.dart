@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kiosk_food/qr_logic.dart';
+import 'cartManager.dart';
 
 class PaymentSuccessPage extends StatelessWidget {
   final String orderId; // Add any other order details we want to display
@@ -8,6 +9,9 @@ class PaymentSuccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final productToAdd = AddedProduct(
+        "productName", 23.5, 1, "imagePath", "productSize"); //test purpose
+    CartManager().addProduct(productToAdd); //test purpose
     return Scaffold(
       appBar: AppBar(
         title: const Text('Payment Successful'),
@@ -33,6 +37,8 @@ class PaymentSuccessPage extends StatelessWidget {
               'Order ID: $orderId',
               style: const TextStyle(fontSize: 18),
             ),
+            Text(
+                "Product Name: ${CartManager().addedProducts[0].productName}") //test purpose
             // You can add more order details here if needed
           ],
         ),

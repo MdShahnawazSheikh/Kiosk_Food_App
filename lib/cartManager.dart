@@ -1,5 +1,6 @@
 class CartManager {
   // List to store added products
+
   List<AddedProduct> _addedProducts = [];
 
   // Getter for accessing addedProducts
